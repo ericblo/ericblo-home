@@ -35,6 +35,11 @@ const nextConfig = {
         source: '/underthecanopy/:path*',
         destination: 'https://ruins-under-the-canopy.vercel.app/:path*',
       },
+      // Pajtim — Move the Sun (static page in public/pajtim)
+      {
+        source: '/pajtim',
+        destination: '/pajtim/index.html',
+      },
       // The Tilted Times
       {
         source: '/thetiltedtimes',
