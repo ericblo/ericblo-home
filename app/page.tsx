@@ -283,6 +283,22 @@ export default function Home() {
       >
         balticway
       </a>
+      <a
+        href="/thetiltedtimes"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="absolute right-24 top-1/2 translate-y-20 text-2xl font-bold text-white hover:text-blue-400 transition-colors duration-300"
+      >
+        thetiltedtimes
+      </a>
+      <a
+        href="/underthecanopy"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="absolute right-32 top-1/2 translate-y-32 text-2xl font-bold text-white hover:text-blue-400 transition-colors duration-300"
+      >
+        underthecanopy
+      </a>
     </div>
   )
 }
