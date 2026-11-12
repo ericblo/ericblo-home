@@ -208,23 +208,47 @@ function Scene({ projects, active, onActiveChange, focus, onOpen, reducedMotion 
   const callbacks = useRef({ onActiveChange, onOpen })
   callbacks.current = { onActiveChange, onOpen }
 
+  // Each project takes the place of the land dot nearest its location, so its
+  // light sits exactly on the globe's grid instead of floating between dots.
+  const snapped = useMemo(() => {
+    const taken = new Set<number>()
+    return projects.map((p) => {
+      const at = latLonToVec3(p.lat, p.lon, 1)
+      let best = 0
+      let bestDot = -Infinity
+      for (let i = 0; i < LAND_DOTS.length; i += 2) {
+        if (taken.has(i)) continue
+        const d = latLonToVec3(LAND_DOTS[i + 1] / 10, LAND_DOTS[i] / 10, 1).dot(at)
+        if (d > bestDot) {
+          bestDot = d
+          best = i
+        }
+      }
+      taken.add(best)
+      return best
+    })
+  }, [projects])
+
   const landGeometry = useMemo(() => {
     const positions = new Float32Array((LAND_DOTS.length / 2) * 3)
     const colors = new Float32Array((LAND_DOTS.length / 2) * 3)
+    let n = 0
     for (let i = 0; i < LAND_DOTS.length; i += 2) {
+      if (snapped.includes(i)) continue // replaced by a project light
       const v = latLonToVec3(LAND_DOTS[i + 1] / 10, LAND_DOTS[i] / 10, RADIUS)
-      positions.set([v.x, v.y, v.z], (i / 2) * 3)
-      colors.set(terrainColor(LAND_DOTS[i + 1] / 10, LAND_DOTS[i] / 10, i + 1), (i / 2) * 3)
+      positions.set([v.x, v.y, v.z], n * 3)
+      colors.set(terrainColor(LAND_DOTS[i + 1] / 10, LAND_DOTS[i] / 10, i + 1), n * 3)
+      n++
     }
     const g = new THREE.BufferGeometry()
-    g.setAttribute('position', new THREE.BufferAttribute(positions, 3))
-    g.setAttribute('aColor', new THREE.BufferAttribute(colors, 3))
+    g.setAttribute('position', new THREE.BufferAttribute(positions.subarray(0, n * 3), 3))
+    g.setAttribute('aColor', new THREE.BufferAttribute(colors.subarray(0, n * 3), 3))
     return g
-  }, [])
+  }, [snapped])
 
   const markers = useMemo(
-    () => projects.map((p) => latLonToVec3(p.lat, p.lon, RADIUS * 1.006)),
-    [projects],
+    () => snapped.map((i) => latLonToVec3(LAND_DOTS[i + 1] / 10, LAND_DOTS[i] / 10, RADIUS)),
+    [snapped],
   )
 
   const textures = useMemo(
