@@ -25,6 +25,10 @@
       "destination": "https://ruins-under-the-canopy.vercel.app/:path*"
     },
     {
+      "source": "/pajtim",
+      "destination": "/pajtim/index.html"
+    },
+    {
       "source": "/thetiltedtimes",
       "destination": "https://tiltedtimes.vercel.app/thetiltedtimes"
     },
