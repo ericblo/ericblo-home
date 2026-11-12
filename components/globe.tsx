@@ -401,7 +401,7 @@ function Scene({ projects, active, onActiveChange, focus, onOpen, reducedMotion 
         r.pitch = THREE.MathUtils.clamp(r.pitch + r.vPitch, -MAX_PITCH, MAX_PITCH)
         r.vYaw *= decay
         r.vPitch *= decay
-        if (activeRef.current == null && !reducedMotion) r.yaw += AUTO_SPIN * delta
+        if (activeRef.current == null) r.yaw += AUTO_SPIN * delta
       }
     }
 

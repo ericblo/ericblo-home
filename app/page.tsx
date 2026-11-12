@@ -27,6 +27,18 @@ export default function Home() {
   const [focus, setFocus] = useState<number | null>(null)
   const reducedMotion = usePrefersReducedMotion()
 
+  // Coming back to this page (Back button) can restore it with a project still
+  // highlighted, which would leave the globe parked on it. Start fresh instead.
+  useEffect(() => {
+    const reset = () => {
+      setActive(null)
+      setFocus(null)
+      if (document.activeElement instanceof HTMLElement) document.activeElement.blur()
+    }
+    window.addEventListener('pageshow', reset)
+    return () => window.removeEventListener('pageshow', reset)
+  }, [])
+
   // Let the globe finish turning toward the dot before leaving the page.
   const open = useCallback(
     (project: Project) => {
