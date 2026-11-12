@@ -35,6 +35,15 @@ const nextConfig = {
         source: '/underthecanopy/:path*',
         destination: 'https://ruins-under-the-canopy.vercel.app/:path*',
       },
+      // The Tilted Times
+      {
+        source: '/thetiltedtimes',
+        destination: 'https://tiltedtimes.vercel.app/thetiltedtimes',
+      },
+      {
+        source: '/thetiltedtimes/:path*',
+        destination: 'https://tiltedtimes.vercel.app/thetiltedtimes/:path*',
+      },
     ]
   },
 }
