@@ -15,6 +15,14 @@
     {
       "source": "/balticway/:path*",
       "destination": "https://v0-baltic-way-visualization.vercel.app/balticway/:path*"
+    },
+    {
+      "source": "/underthecanopy",
+      "destination": "https://ruins-under-the-canopy.vercel.app/"
+    },
+    {
+      "source": "/underthecanopy/:path*",
+      "destination": "https://ruins-under-the-canopy.vercel.app/:path*"
     }
   ]
 }
