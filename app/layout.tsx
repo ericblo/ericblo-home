@@ -8,13 +8,11 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: 'ericblo',
-  description: 'Data Analytics & Strategy',
   // The icon, Apple touch icon and link-preview image are the files
   // app/icon.png, app/apple-icon.png and app/opengraph-image.png.
   metadataBase: new URL('https://www.ericblo.com'),
   openGraph: {
     title: 'Eric Blohm',
-    description: 'Data & strategy',
     url: '/',
     siteName: 'ericblo',
     type: 'website',

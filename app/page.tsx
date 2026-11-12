@@ -56,9 +56,6 @@ export default function Home() {
 
       <header className="home-fade pointer-events-none absolute left-6 top-6 z-10 md:left-10 md:top-9" style={{ animationDelay: '2.3s' }}>
         <h1 className="text-lg font-semibold tracking-tight">eric blohm</h1>
-        <p className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500">
-          data &amp; strategy
-        </p>
       </header>
 
       <div className="home-fade relative min-h-0 flex-1" style={{ animationDuration: '1.4s' }}>
