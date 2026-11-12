@@ -26,6 +26,15 @@ const nextConfig = {
         source: '/thebestpeople/:path*',
         destination: 'https://v0-thebestpeople.vercel.app/thebestpeople/:path*',
       },
+      // Ruins Under the Canopy
+      {
+        source: '/underthecanopy',
+        destination: 'https://ruins-under-the-canopy.vercel.app/',
+      },
+      {
+        source: '/underthecanopy/:path*',
+        destination: 'https://ruins-under-the-canopy.vercel.app/:path*',
+      },
     ]
   },
 }
