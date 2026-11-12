@@ -52,11 +52,12 @@
   uniform vec3 lightCol;
   uniform float ambient;
 
+  const float TOP = 0.305; // skip the sky: show only the range below the ridgeline
   vec2 coverUV(vec2 s){
-    float sa = res.x/res.y, ia = imgRes.x/imgRes.y;
+    float sa = res.x/res.y, ia = imgRes.x/(imgRes.y*(1.0-TOP));
     vec2 uv = s;
-    if (sa > ia) { float k = ia/sa; uv.y = (s.y-0.5)*k + 0.5 + min(0.12, (1.0-k)*0.5); } else { uv.x = (s.x-0.5)*(sa/ia)+0.5; }
-    return vec2(uv.x, 1.0-uv.y);
+    if (sa > ia) { float k = ia/sa; uv.y = (s.y-0.5)*k + 0.5; } else { uv.x = (s.x-0.5)*(sa/ia)+0.5; }
+    return vec2(uv.x, TOP + (1.0-uv.y)*(1.0-TOP));
   }
   float lum(vec3 c){ return dot(c, vec3(0.30,0.45,0.25)); }
   float H(vec2 uv){
@@ -112,7 +113,7 @@
     float fall = 1.0 / (1.0 + dist*dist*2.2);
 
     vec3 col = albedo * ambient;
-    col += albedo * lightCol * (diff*diff) * fall * 1.6 * sh;
+    col += albedo * lightCol * (diff*diff) * fall * 1.9 * sh;
     col += mix(lightCol, albedo*1.6, 0.5) * spec * fall * 0.45 * sh;
     // halo around the sun itself
     float glow = exp(-dist*dist*60.0);
@@ -121,7 +122,7 @@
     col = col / (1.0 + col*0.18);            // gentle tonemap
     col = pow(col, vec3(0.95));
     col += (hash(v*res + t) - 0.5) * 0.018;  // film grain
-    vec2 q = v - 0.5; col *= 1.0 - dot(q,q)*0.25;
+    vec2 q = v - 0.5; col *= 1.0 - dot(q,q)*0.5;
     gl_FragColor = vec4(col * intro, 1.0);
   }`;
 
@@ -140,9 +141,9 @@
               intro: U('intro'), lightCol: U('lightCol'), ambient: U('ambient') };
 
   const modes = [
-    { name: 'Sun',      col: [1.0, 0.93, 0.82], amb: 0.84, h: 16 },
-    { name: 'Ember',    col: [1.0, 0.55, 0.30], amb: 0.58, h: 19 },
-    { name: 'Ultraviolet', col: [0.55, 0.45, 1.0], amb: 0.44, h: 21 },
+    { name: 'Sun',      col: [1.0, 0.93, 0.82], amb: 0.6, h: 17 },
+    { name: 'Ember',    col: [1.0, 0.55, 0.30], amb: 0.42, h: 19 },
+    { name: 'Ultraviolet', col: [0.55, 0.45, 1.0], amb: 0.32, h: 21 },
     { name: 'Moon',     col: [0.70, 0.85, 1.0], amb: 0.16, h: 24 },
   ];
   let mi = 0, cur = { ...modes[0], col: [...modes[0].col] };
