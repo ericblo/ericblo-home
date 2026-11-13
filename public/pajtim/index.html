@@ -9,37 +9,23 @@
   html, body { margin: 0; height: 100%; background: var(--bg); overflow: hidden; }
   body { font-family: ui-sans-serif, -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif; color: var(--ink); touch-action: none; cursor: none; }
   canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; }
-  .hint {
-    position: fixed; left: 50%; bottom: max(28px, env(safe-area-inset-bottom));
-    transform: translateX(-50%); font-size: 12px; letter-spacing: .28em; text-transform: uppercase;
-    opacity: .85; transition: opacity 1.6s ease; pointer-events: none; white-space: nowrap;
-    mix-blend-mode: difference;
-  }
-  .hint.gone { opacity: 0; }
-  .tag {
-    position: fixed; left: 16px; top: max(16px, env(safe-area-inset-top));
+  .link {
+    position: fixed; left: 16px; bottom: max(16px, env(safe-area-inset-bottom));
     font-size: 11px; letter-spacing: .3em; text-transform: uppercase; opacity: .7;
-    mix-blend-mode: difference; pointer-events: none;
+    color: var(--ink); text-decoration: none; mix-blend-mode: difference;
+    cursor: pointer; transition: opacity .3s; padding: 8px 0;
   }
-  .mode {
-    position: fixed; right: 16px; top: max(16px, env(safe-area-inset-top));
-    font-size: 11px; letter-spacing: .3em; text-transform: uppercase; opacity: .7;
-    mix-blend-mode: difference; pointer-events: none; transition: opacity .4s;
-  }
+  .link:hover, .link:focus-visible { opacity: 1; text-decoration: underline; text-underline-offset: 4px; outline: none; }
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
-<div class="tag">Pajtim</div>
-<div class="mode" id="mode">Sun</div>
-<div class="hint" id="hint">Move to light the mountains · click to change the light</div>
+<a class="link" id="link" href="https://pajtim.com" target="_blank" rel="noopener">Paintings at pajtim.com</a>
 <script>
 (() => {
   const ART = "/pajtim/art.jpg";
   const canvas = document.getElementById('c');
   const gl = canvas.getContext('webgl', { antialias: false, premultipliedAlpha: false });
-  const hint = document.getElementById('hint');
-  const modeEl = document.getElementById('mode');
   if (!gl) { document.body.innerHTML = '<img src="' + ART + '" style="width:100vw;height:100vh;object-fit:cover">'; return; }
 
   const vs = `attribute vec2 p; varying vec2 v; void main(){ v = p*0.5+0.5; gl_Position = vec4(p,0.,1.); }`;
@@ -73,7 +59,7 @@
 
   void main(){
     vec2 uv = coverUV(v);
-    vec2 px = 1.6/imgRes;
+    vec2 px = 2.4/imgRes;
     float hL = H(uv - vec2(px.x,0.)), hR = H(uv + vec2(px.x,0.));
     float hD = H(uv + vec2(0.,px.y)), hU = H(uv - vec2(0.,px.y));
     vec3 n = normalize(vec3((hL-hR)*height, (hD-hU)*height, 1.0));
@@ -85,20 +71,26 @@
     float dist = length(Ld);
     vec3 L = normalize(Ld);
 
-    // soft shadow: march toward the light across the heightfield
+    // shadows: march across the paper toward the sun in image texels, with fine jittered
+    // steps near the surface, so each fold of the artwork casts its own soft shadow
     float sh = 1.0;
-    vec2 dirS = (light - v); dirS.x *= 1.0; float len = length(dirS);
-    if (len > 0.001) {
-      vec2 stepS = dirS/len * 0.006;
+    vec2 pT = uv*imgRes, lT = coverUV(light)*imgRes;
+    vec2 dT = lT - pT; float lenT = length(dT);
+    if (lenT > 2.0) {
+      vec2 dir = dT/lenT;
       float h0 = H(uv);
-      for (int i = 1; i <= 14; i++) {
-        vec2 sp = v + stepS*float(i);
-        float hs = H(coverUV(sp));
-        float rise = float(i)*0.006 * (0.22/max(len,0.05)) * 0.9;
-        sh = min(sh, clamp(1.0 - (hs - h0 - rise)*9.0, 0.0, 1.0));
+      float slope = 0.22/max(lenT, 90.0);
+      float jit = hash(gl_FragCoord.xy);
+      float tt = 1.5 + jit*1.5, stp = 1.5;
+      for (int i = 0; i < 24; i++) {
+        if (tt > lenT) break;
+        float hs = lum(texture2D(tex, (pT + dir*tt)/imgRes).rgb);
+        float occ = smoothstep(0.0, 0.07, hs - h0 - tt*slope - 0.01);
+        sh = min(sh, 1.0 - occ*max(0.0, 1.0 - tt/260.0));
+        stp *= 1.13; tt += stp*(0.75 + 0.5*jit);
       }
     }
-    sh = mix(0.55, 1.0, sh);
+    sh = mix(0.5, 1.0, sh);
 
     vec3 c0 = texture2D(tex, uv).rgb;
     vec2 q1 = 1.0/imgRes;
@@ -106,18 +98,19 @@
              + texture2D(tex, uv+vec2(0.,q1.y)).rgb + texture2D(tex, uv-vec2(0.,q1.y)).rgb
              + texture2D(tex, uv+q1).rgb + texture2D(tex, uv-q1).rgb
              + texture2D(tex, uv+vec2(q1.x,-q1.y)).rgb + texture2D(tex, uv+vec2(-q1.x,q1.y)).rgb) / 8.0;
-    vec3 albedo = clamp(c0 + (c0 - bl)*0.7, 0.0, 1.0);
+    vec3 albedo = clamp(c0 + (c0 - bl)*0.4, 0.0, 1.0);
     float diff = max(dot(n, L), 0.0);
     vec3 V = vec3(0.,0.,1.);
     float spec = pow(max(dot(reflect(-L, n), V), 0.0), 44.0);
     float fall = 1.0 / (1.0 + dist*dist*2.2);
 
     vec3 col = albedo * ambient;
-    col += albedo * lightCol * (diff*diff) * fall * 1.9 * sh;
-    col += mix(lightCol, albedo*1.6, 0.5) * spec * fall * 0.45 * sh;
+    float wrap = diff*0.75 + 0.25;  // soft, matte paper falloff
+    col += albedo * lightCol * wrap * fall * 1.25 * sh;
+    col += mix(lightCol, albedo*1.6, 0.5) * spec * fall * 0.03 * sh;
     // halo around the sun itself
     float glow = exp(-dist*dist*60.0);
-    col += albedo * lightCol * glow * 0.25;
+    col += albedo * lightCol * glow * 0.12;
 
     col = col / (1.0 + col*0.18);            // gentle tonemap
     col = pow(col, vec3(0.95));
@@ -141,10 +134,10 @@
               intro: U('intro'), lightCol: U('lightCol'), ambient: U('ambient') };
 
   const modes = [
-    { name: 'Sun',      col: [1.0, 0.93, 0.82], amb: 0.6, h: 17 },
-    { name: 'Ember',    col: [1.0, 0.55, 0.30], amb: 0.42, h: 19 },
-    { name: 'Ultraviolet', col: [0.55, 0.45, 1.0], amb: 0.32, h: 21 },
-    { name: 'Moon',     col: [0.70, 0.85, 1.0], amb: 0.16, h: 24 },
+    { name: 'Sun',      col: [1.0, 0.93, 0.82], amb: 0.6, h: 9 },
+    { name: 'Ember',    col: [1.0, 0.55, 0.30], amb: 0.42, h: 10 },
+    { name: 'Ultraviolet', col: [0.55, 0.45, 1.0], amb: 0.32, h: 11 },
+    { name: 'Moon',     col: [0.70, 0.85, 1.0], amb: 0.16, h: 13 },
   ];
   let mi = 0, cur = { ...modes[0], col: [...modes[0].col] };
 
@@ -171,22 +164,22 @@
 
   // light position in screen space (0..1, y up)
   const target = { x: 0.5, y: 0.82 }, pos = { x: 0.5, y: 0.82 };
-  let lastInput = -1e9, hidden = false;
+  let lastInput = -1e9;
   function setFromClient(x, y){
     target.x = x / innerWidth; target.y = 1 - y / innerHeight;
     lastInput = performance.now();
-    if (!hidden) { hidden = true; setTimeout(() => hint.classList.add('gone'), 2200); }
   }
   addEventListener('pointermove', e => setFromClient(e.clientX, e.clientY));
   addEventListener('pointerdown', e => {
     setFromClient(e.clientX, e.clientY);
     askTilt();
   });
+  // using the link shouldn't also change the light
+  document.getElementById('link').addEventListener('click', e => e.stopPropagation());
   addEventListener('click', () => {
     mi = (mi + 1) % modes.length;
-    modeEl.textContent = modes[mi].name;
   });
-  addEventListener('keydown', e => { if (e.key === ' ') { mi = (mi + 1) % modes.length; modeEl.textContent = modes[mi].name; } });
+  addEventListener('keydown', e => { if (e.key === ' ') { mi = (mi + 1) % modes.length; } });
 
   // phone tilt moves the sun
   let tiltAsked = false;
