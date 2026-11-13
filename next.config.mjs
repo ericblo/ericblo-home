@@ -49,6 +49,15 @@ const nextConfig = {
         source: '/thetiltedtimes/:path*',
         destination: 'https://tiltedtimes.vercel.app/thetiltedtimes/:path*',
       },
+      // Apartment
+      {
+        source: '/apartment',
+        destination: 'https://apartment-ten-umber.vercel.app/apartment',
+      },
+      {
+        source: '/apartment/:path*',
+        destination: 'https://apartment-ten-umber.vercel.app/apartment/:path*',
+      },
     ]
   },
 }

@@ -35,6 +35,14 @@
     {
       "source": "/thetiltedtimes/:path*",
       "destination": "https://tiltedtimes.vercel.app/thetiltedtimes/:path*"
+    },
+    {
+      "source": "/apartment",
+      "destination": "https://apartment-ten-umber.vercel.app/apartment"
+    },
+    {
+      "source": "/apartment/:path*",
+      "destination": "https://apartment-ten-umber.vercel.app/apartment/:path*"
     }
   ]
 }
