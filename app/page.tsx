@@ -8,6 +8,7 @@ const PROJECTS: Project[] = [
   { slug: 'thetiltedtimes', place: 'New York City', lat: 40.71, lon: -74.0 },
   { slug: 'thebestpeople', place: 'Washington, DC', lat: 38.9, lon: -77.04 },
   { slug: 'balticway', place: 'The Baltics', lat: 56.95, lon: 24.1 },
+  { slug: 'pajtim', place: 'Kosovo', lat: 42.6, lon: 20.9 },
 ]
 
 function usePrefersReducedMotion() {
